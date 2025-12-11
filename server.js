@@ -11,9 +11,21 @@ app.use(express.json());
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// Simple health check (optional)
+app.get("/", (req, res) => {
+  res.send("Review backend is running");
+});
+
 app.post("/generate-reply", async (req, res) => {
   try {
     const { reviewText, rating, productName, tone } = req.body;
+
+    console.log("📩 /generate-reply called with:", {
+      reviewText,
+      rating,
+      productName,
+      tone,
+    });
 
     const systemPrompt = `
 You are an assistant helping Amazon sellers reply to customer reviews.
@@ -54,14 +66,16 @@ Write a reply from the seller that:
     });
 
     const reply = response.choices[0].message.content;
+    console.log("✅ Generated reply:", reply);
     res.json({ reply });
   } catch (e) {
-    console.error(e);
+    console.error("❌ Error in /generate-reply:", e);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log("Review backend listening on port", PORT);
+  console.log("🚀 Review backend listening on port", PORT);
 });
+
